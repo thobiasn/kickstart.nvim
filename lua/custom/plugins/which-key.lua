@@ -8,7 +8,7 @@ return {
   end,
   opts = {
     defaults = {
-      ['<leader>w'] = { name = 'Workspace'}
-    }
+      ['<leader>w'] = { name = 'Workspace'},
+    },
   },
 }
