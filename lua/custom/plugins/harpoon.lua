@@ -5,6 +5,14 @@ return {
   config = function()
     local harpoon = require('harpoon')
     harpoon:setup()
+    local action_state = require('telescope.actions.state')
+    local actions = require('telescope.actions')
+
+    local remove_from_menu = function(prompt_bufnr)
+      local selection = action_state.get_selected_entry()
+      harpoon:list():removeAt(selection.index)
+      actions.close(prompt_bufnr)
+    end
 
     -- basic telescope configuration
     local conf = require("telescope.config").values
@@ -21,6 +29,10 @@ return {
         }),
         previewer = conf.file_previewer({}),
         sorter = conf.generic_sorter({}),
+        attach_mappings = function(_, map)
+          map("n", "dd", remove_from_menu)
+          return true
+        end,
       }):find()
     end
 
