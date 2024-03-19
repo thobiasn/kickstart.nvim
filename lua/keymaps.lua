@@ -26,6 +26,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- map netrw
-vim.keymap.set('n', '<leader>f', vim.cmd.Ex, { desc = '[F]ile explorer' })
+--vim.keymap.set('n', '<leader>f', vim.cmd.Ex, { desc = '[F]ile  
+vim.keymap.set('n', '<leader>O', '<cmd>Neotree toggle<CR>', { desc = '[O]pen Neo Tree'})
 
 -- vim: ts=2 sts=2 sw=2 et
