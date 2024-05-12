@@ -83,6 +83,7 @@ local servers = {
   -- rust_analyzer = {},
   -- tsserver = {},
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },
+  svelte_language_server = {},
 
   lua_ls = {
     Lua = {
