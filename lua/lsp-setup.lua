@@ -1,3 +1,42 @@
+-- custom function for finding the shortest root pattern
+local lspconfig_util = require('lspconfig.util')
+
+function first_root_pattern(patterns1, patterns2)
+  -- Create two root_pattern functions
+  local find_root1 = lspconfig_util.root_pattern(unpack(patterns1))
+  local find_root2 = lspconfig_util.root_pattern(unpack(patterns2))
+
+  return function(startpath)
+    print("Start path:", startpath)
+    print("Patterns 1:", vim.inspect(patterns1))
+    print("Patterns 2:", vim.inspect(patterns2))
+
+    local path1 = find_root1(startpath)
+    local path2 = find_root2(startpath)
+
+    print("Found path1:", path1 or "nil")
+    print("Found path2:", path2 or "nil")
+
+    if path1 and path2 then
+      -- Count the number of slashes to determine the path length
+      local path1_length = select(2, path1:gsub("/", ""))
+      local path2_length = select(2, path2:gsub("/", ""))
+
+      if path1_length > path2_length then
+        print("Returning path1:", path1)
+        return path1
+      end
+    elseif path1 then
+      print("Returning path1:", path1)
+      return path1
+    end
+
+    print("Returning nil")
+    return nil
+  end
+end
+
+
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
@@ -76,15 +115,21 @@ require('mason-lspconfig').setup()
 --
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
+
 local servers = {
-  -- clangd = {},
-  -- gopls = {},
-  -- pyright = {},
-  -- rust_analyzer = {},
-  -- tsserver = {},
-  -- html = { filetypes = { 'html', 'twig', 'hbs'} },
+  tsserver = {
+    root_dir = first_root_pattern({"package.json", "tsconfig.json"}, {"deno.json", "deno.jsonc"}),
+    single_file_support = false,
+  },
+
+  denols = {
+    root_dir = first_root_pattern({"deno.json", "deno.jsonc"}, {"package.json", "tsconfig.json"})
+  },
+
   svelte_language_server = {},
 
+  -- less important
+  html = { filetypes = { 'html', 'twig', 'hbs'} },
   lua_ls = {
     Lua = {
       workspace = { checkThirdParty = false },
@@ -111,11 +156,17 @@ mason_lspconfig.setup {
 
 mason_lspconfig.setup_handlers {
   function(server_name)
+    local server_config = servers[server_name] or {}
+    local root_dir = server_config.root_dir
+    server_config.root_dir = nil
+
     require('lspconfig')[server_name].setup {
       capabilities = capabilities,
       on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
+      settings = server_config,
+      filetypes = server_config.filetypes,
+      root_dir = root_dir,
+      single_file_support = server_config.single_file_support,
     }
   end,
 }
