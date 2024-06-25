@@ -1,21 +1,14 @@
--- custom function for finding the shortest root pattern
+-- custom function for finding the deepest root pattern
 local lspconfig_util = require('lspconfig.util')
 
-function first_root_pattern(patterns1, patterns2)
+function deepest_root_pattern(patterns1, patterns2)
   -- Create two root_pattern functions
   local find_root1 = lspconfig_util.root_pattern(unpack(patterns1))
   local find_root2 = lspconfig_util.root_pattern(unpack(patterns2))
 
   return function(startpath)
-    print("Start path:", startpath)
-    print("Patterns 1:", vim.inspect(patterns1))
-    print("Patterns 2:", vim.inspect(patterns2))
-
     local path1 = find_root1(startpath)
     local path2 = find_root2(startpath)
-
-    print("Found path1:", path1 or "nil")
-    print("Found path2:", path2 or "nil")
 
     if path1 and path2 then
       -- Count the number of slashes to determine the path length
@@ -23,15 +16,13 @@ function first_root_pattern(patterns1, patterns2)
       local path2_length = select(2, path2:gsub("/", ""))
 
       if path1_length > path2_length then
-        print("Returning path1:", path1)
         return path1
       end
+
     elseif path1 then
-      print("Returning path1:", path1)
       return path1
     end
 
-    print("Returning nil")
     return nil
   end
 end
@@ -118,12 +109,12 @@ require('mason-lspconfig').setup()
 
 local servers = {
   tsserver = {
-    root_dir = first_root_pattern({"package.json", "tsconfig.json"}, {"deno.json", "deno.jsonc"}),
+    root_dir = deepest_root_pattern({"package.json", "tsconfig.json"}, {"deno.json", "deno.jsonc"}),
     single_file_support = false,
   },
 
   denols = {
-    root_dir = first_root_pattern({"deno.json", "deno.jsonc"}, {"package.json", "tsconfig.json"})
+    root_dir = deepest_root_pattern({"deno.json", "deno.jsonc"}, {"package.json", "tsconfig.json"})
   },
 
   svelte_language_server = {},
